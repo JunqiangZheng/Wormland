@@ -403,8 +403,6 @@ dim(USA5y)
 
 require(wTO)
 
-wTO.Complete()
-?wTO.Complete
 
 USA10y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(USA10y)), Overlap = row.names(t(USA10y)),
   method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
