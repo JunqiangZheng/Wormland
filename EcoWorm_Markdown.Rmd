@@ -324,9 +324,147 @@ plot (VENN)
 
 
 
+```
 
+```{r}
+###we need the effect, p-value and r squared for each OTU
+###so let's write a loop and put the results in a data.frame (no matrix, matrices will not hold numbers)
+
+
+
+for (OTU in 1:ncol(species_mat)){
+  x <- colnames(species_mat)[OTU]
+  y <- summary(lm((log(species_mat[,OTU]+1)~Ecoworm$Location+as.factor(Ecoworm$Depth)+Ecoworm$Worm)))
+  z <- cbind(LocationCAX<- y$coefficients[2,1], LocationCAX_p <- y$coefficients[2,4],                        
+             LocationUSA<- y$coefficients[3,1], LocationUSA_p <- y$coefficients[3,4],
+             Depth<- y$coefficients[4,1], Depth_p <- y$coefficients[4,4],
+             Worm<- y$coefficients[5,1], Worm_p <- y$coefficients[5,4],
+             R_sqaured <- y$r.squared)
+  
+  z = as.data.frame(z)
+  if (OTU==1){
+    Anova_Results<-z
+  } else{
+    Anova_Results<-rbind(Anova_Results,z)
+  }
+  
+ # print(y)
+}
+class(Anova_Results)
+row.names(Anova_Results)<-colnames(species_mat)
+colnames(Anova_Results)<-c('LocationCAX','LocationCAX_p','LocationUSA',"LocationUSA_p",'Depth',"Depth_p",'Worm','Worm_p','R_sqaured')
+Anova_Results
 
 
 ```
 
+```{r}
+###let's do correlations
 
+##we need to create subsets of our data
+log_species<-log(species+1)
+
+USA10y<- log_species[Ecoworm$Location=='USA' & Ecoworm$Depth==10 & Ecoworm$Worm=='yes',]
+dim(USA10y)
+
+USA5y<- log_species[Ecoworm$Location=='USA' & Ecoworm$Depth==5 & Ecoworm$Worm=='yes',]
+dim(USA5y)
+
+CAX10y<- log_species[Ecoworm$Location=='CAX' & Ecoworm$Depth==10 & Ecoworm$Worm=='yes',]
+dim(USA10y)
+
+CAX5y<- log_species[Ecoworm$Location=='CAX' & Ecoworm$Depth==5 & Ecoworm$Worm=='yes',]
+dim(USA5y)
+
+CAK10y<- log_species[Ecoworm$Location=='CAK' & Ecoworm$Depth==10 & Ecoworm$Worm=='yes',]
+dim(USA10y)
+
+CAK5y<- log_species[Ecoworm$Location=='CAK' & Ecoworm$Depth==5 & Ecoworm$Worm=='yes',]
+dim(USA5y)
+
+USA10n<- log_species[Ecoworm$Location=='USA' & Ecoworm$Depth==10 & Ecoworm$Worm=='no',]
+dim(USA10y)
+
+USA5n<- log_species[Ecoworm$Location=='USA' & Ecoworm$Depth==5 & Ecoworm$Worm=='no',]
+dim(USA5y)
+
+CAX10n<- log_species[Ecoworm$Location=='CAX' & Ecoworm$Depth==10 & Ecoworm$Worm=='no',]
+dim(USA10y)
+
+CAX5n<- log_species[Ecoworm$Location=='CAX' & Ecoworm$Depth==5 & Ecoworm$Worm=='no',]
+dim(USA5y)
+
+CAK10n<- log_species[Ecoworm$Location=='CAK' & Ecoworm$Depth==10 & Ecoworm$Worm=='no',]
+dim(USA10y)
+
+CAK5n<- log_species[Ecoworm$Location=='CAK' & Ecoworm$Depth==5 & Ecoworm$Worm=='no',]
+dim(USA5y)
+
+
+require(wTO)
+
+wTO.Complete()
+?wTO.Complete
+
+USA10y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(USA10y)), Overlap = row.names(t(USA10y)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+USA5y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(USA5y)), Overlap = row.names(t(USA5y)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+CAX10y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAX10y)), Overlap = row.names(t(CAX10y)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+CAX5y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAX5y)), Overlap = row.names(t(CAX5y)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+CAK10y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAK10y)), Overlap = row.names(t(CAK10y)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+CAK5y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAK5y)), Overlap = row.names(t(CAK5y)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+
+USA10n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(USA10n)), Overlap = row.names(t(USA10n)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+USA5n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(USA5n)), Overlap = row.names(t(USA5n)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+CAX10n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAX10n)), Overlap = row.names(t(CAX10n)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+CAX5n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAX5n)), Overlap = row.names(t(CAX5n)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+CAK10n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAK10n)), Overlap = row.names(t(CAK10n)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+CAK5n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAK5n)), Overlap = row.names(t(CAK5n)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+```
