@@ -1,0 +1,332 @@
+---
+title: "Ecoworm"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+Ecoworm<-read.csv("D:\\Backup\\Projekte/Github/Wormland/EcoW-data-EVOP.csv", header=T, stringsAsFactors=TRUE, sep=";")
+
+species <-Ecoworm[,9:ncol(Ecoworm)] ##definiere Artdaten; ncol(Ecoworm geht bis zur letzten Zeile durch)
+Forest <- Ecoworm[,7]
+Depth<- Ecoworm[,6]
+Worm<-Ecoworm[,5]
+
+boxplot(species, las=2) #las gibt die Formatierung der Namen
+
+```
+
+```{r}
+pc<-prcomp(t(species),scale=T, center = T)
+pc_summary<-summary(pc)### die erste Achse erklärt 55% der Variation, die zweite nur noch 4, klarer Abbruch
+plot(pc$x[,1:2])###hier plotte ich die ersten beiden Varianzen der pca, die X-Achse ist also die, die 55% der Variation erklärt. Der Faktor "x" im Code bezieht sich auf die Zeile der Liste "pc", die die Koordinaten für den Plot enthält
+```
+
+```{r}
+##Die PCA zeigt ganz klar zwei Outlier, lasst uns die Namen darauf plotten um zu sehen wer das ist
+plot(pc$x[,1:2])  ###wichtig ist darauf zu achten, dass beide Befehle hier gleichzeitig ausgeführt werden
+text(pc$x[,1:2], names(pc$x[,1]))
+
+```
+
+```{r}
+#Histograms
+
+SubsetEcowormForestUSA = subset(species, "USA" == Ecoworm[,7])
+SubsetEcowormForestUSA = as.matrix(SubsetEcowormForestUSA)
+hist(SubsetEcowormForestUSA) ###many zeros means we have a lot of zeros, meaning that many OTUs were not present in the forest USA, nevertheless there were many abundant
+
+##lets see the disprsal of a couple example OTUs
+
+SubsetEcowormForestUSA = subset(species, "USA" == Ecoworm[,7])
+SubsetEcowormForestUSA = subset(log(species+1), "USA" == Ecoworm[,7])### log(species+1), remember to add +1 to the data before log transforming, Zeros can not be log transformed
+SubsetEcowormForestUSA = as.matrix(SubsetEcowormForestUSA)
+hist(as.numeric(SubsetEcowormForestUSA[,100]), breaks=10)##breaks breaks the columns into more columns ### we see that in this graph OTU100 is in some samples not present (Zeros) and in others it is sometimes more frequent and sometimes less, nearly normally distributed
+
+SubsetEcowormForestUSA = subset(species, "USA" == Ecoworm[,7])
+SubsetEcowormForestUSA = subset(log(species+1), "USA" == Ecoworm[,7])### log(species+1), remember to add +1 to the data before log transforming, Zeros can not be log transformed
+SubsetEcowormForestUSA = as.matrix(SubsetEcowormForestUSA)
+hist(as.numeric(SubsetEcowormForestUSA[,1]), breaks=10)##breaks breaks the columns into more columns ### we see that in this graph OTU1 is nearly normally distributed
+
+
+```
+
+```{r}
+#Boxplots
+
+boxplot(log(species[,1]+1) ~ Ecoworm$Location) ###$Location is exactly the same as [,7] in Ecoworm or the "Forest" subsample, you could also type "~ Forest"
+
+boxplot(log(species[,1]+1) ~ Ecoworm$Location+Depth) ###$Location is exactly the same as [,7] in Ecoworm or the "Forest" subsample, you could also type "~ Forest"
+
+
+
+```
+
+```{r}
+#See Bargraph of the variation of the dataset by PCA
+
+pca = prcomp(t(species_mat), scale. = T, center = T)
+plot(pca)### probably only the first axis explains most of our variation in the data
+
+
+
+```
+
+
+```{r}
+#See the PCA
+
+plot(pca$rotation, col = c('red', 'blue', 'green')[unclass(Ecoworm$Location)], pch = 16, las = 1) ### better PCA code, this one is centered, I gave three colour for three different Location factors, I did not know which colour represents which location
+legend('bottomleft', 
+       levels(Ecoworm$Location), 
+       col = c('red', 'blue', 'green'), 
+       pch = 16, 
+       bty = 'n')
+levels(Ecoworm$Location)###I used this to get the levels of the location and to know which colour refers to what
+
+
+```
+
+```{r}
+#Make PCA for two factors, here location and depth
+
+plot(pca$rotation, col = c('red', 'blue', 'green')[unclass(Ecoworm$Location)], pch = c(16,4)[unclass(Ecoworm$Worm)], las = 1) ### better PCA code, this one is centered, I gave three colour for three different Location factors, I did not know which colour represents which location 
+legend('bottomleft', 
+       c(levels(Ecoworm$Location), levels(Ecoworm$Worm)), 
+       col = c('red', 'blue', 'green', 'lightgreen', 'lightblue'), 
+       pch = c(15,15,15,16,4), ####15,15,15, refer to the three levels of location, 16,4 refer to the two levels of worm presence. 
+       bty = 'n')
+
+```
+
+```{r}
+#Make PCA for two factors, here location and depth
+
+Ecoworm$Depth<-as.factor(Ecoworm$Depth)
+plot(pca$rotation, col = c('red', 'blue', 'green')[unclass(Ecoworm$Location)], pch = c(16,4)[unclass(Ecoworm$Depth)], las = 1) ### better PCA code, this one is centered, I gave three colour for three different Location factors, I did not know which colour represents which location 
+legend('bottomleft', 
+       c(levels(Ecoworm$Location), levels(Ecoworm$Depth)), 
+       col = c('red', 'blue', 'green', 'lightgreen', 'lightblue'), 
+       pch = c(15,15,15,16,4), ####15,15,15, refer to the three levels of location, 16,4 refer to the two levels of worm presence. 
+       bty = 'n')
+
+```
+
+```{r}
+#Make PCA for two factors, here depth and worm
+
+plot(pca$rotation, col = c('red', 'blue')[unclass(Ecoworm$Depth)], pch = c(16,4)[unclass(Ecoworm$Worm)], las = 1) ### better PCA code, this one is centered, I gave three colour for three different Location factors, I did not know which colour represents which location 
+legend('bottomleft', 
+       c(levels(Ecoworm$Depth), levels(Ecoworm$Worm)), 
+       col = c('red', 'blue'), 
+       pch = c(15,15,16,4), ####15,15,15, refer to the three levels of location, 16,4 refer to the two levels of worm presence. 
+       bty = 'n')
+
+```
+
+```{r}
+require(scatterplot3d)
+#Make 3D PCA for two factors, here location and depth
+
+scatterplot3d::scatterplot3d(pca$rotation[,1], 
+                             pca$rotation[,3],
+                             pca$rotation[,2],
+                             xlab = 'PCA1', 
+                             ylab = 'PCA3', 
+                             zlab = 'PCA2', 
+                             las = 1, 
+                             color = c('red', 'blue')[unclass(Ecoworm$Location)], 
+                             pch = c(4, 16)[unclass(Ecoworm$Depth)] )
+
+```
+
+```{r}
+require(scatterplot3d)
+#Make 3D PCA for two factors, here location and depth
+
+scatterplot3d::scatterplot3d(pca$rotation[,1], 
+                             pca$rotation[,3],
+                             pca$rotation[,2],
+                             xlab = 'PCA1', 
+                             ylab = 'PCA3', 
+                             zlab = 'PCA2', 
+                             las = 1, 
+                             color = c('red', 'blue')[unclass(Ecoworm$Location)], 
+                             pch = c(4, 16)[unclass(Ecoworm$Worm)] )
+
+```
+
+```{r}
+require(rgl)
+#Make 3D PCA for the data, label color in location, we can clearly see from this plot that our data is quite "flat", meaning that most of our variation lies in 1 axis
+?rgl
+rgl.open()                   
+rgl.points(pca$rotation[,1],pca$rotation[,3],pca$rotation[,2],color = c('red', 'blue', 'green')[unclass(Ecoworm$Location)], size=10)
+
+```
+
+```{r}
+####depth should be a factor, that is why we included as.factor in the anovas
+
+
+##Models ## lm is a simple linear model in R and it is exactly the same thing as an anova.
+### since this is the anova and anova wants normal distribution you do this with the log transformed data
+mod0<-lm((log(species$Otu001.Glissomonadida.Sandonidae.Sandonidae_X.sp.)+1)~ Ecoworm$Location)
+
+summary(mod0)###in average the abundance of OTU is 748 less in CAX than in CAK or 1700 less than in USA, sweet ### the same thing you can see when you make a boxplot of OTU1 in each of the locations
+AIC(mod0)
+boxplot((species[,1])~Forest)###here I boxplotted everything without the log to see the real difference in abundance
+
+mod1<-lm((log(species$Otu001.Glissomonadida.Sandonidae.Sandonidae_X.sp.)+1)~ Ecoworm$Worm)
+summary(mod1)
+boxplot((species[,1])~Worm)
+
+mod2<-lm((log(species$Otu001.Glissomonadida.Sandonidae.Sandonidae_X.sp.)+1)~ as.factor(Ecoworm$Depth))
+summary(mod2)
+boxplot((species[,1])~Depth)####Adjusted R-squared explains how much variation is explained by this specific variable, R swuare will alway increase with multiple factors, 
+AIC(mod2)### the AIC measures how wrong your model ist/how far you are from having the best model, the closer to 0 is better, the more factors you put the more it will increase, so take care to keep it "relatively low" 
+
+mod3<-lm((log(species$Otu001.Glissomonadida.Sandonidae.Sandonidae_X.sp.)+1)~ Ecoworm$Location+as.factor(Ecoworm$Depth)+Ecoworm$Worm)
+summary(mod3)####having worms increases the amount of OTU1 in log0.32 in presence of the other variables, and since you read from the bottom to the top it would be when you have shallower sampling and under comparison to CAK
+boxplot((species[,1])~Ecoworm$Location,Ecoworm$Worm,Ecoworm$Depth)
+
+###ne order of things to put in the aov is very important usually you order after their importance (AIC(and R²))
+
+
+
+```
+
+
+```{r}
+####
+par(mfrow=c(2,2))
+plot(mod3, which=c(1:4), add.smooth=FALSE, pch=20, las=1)##normalQ-Q shows us that the data is normally distributed along the line, cooks distance shows outliers, rule of thumb: values above ten are outliers, the other graphs show a variance into the positive or negative, if it is obviously dragged into one direction it should be weird, here everything looks sweet
+```
+
+```{r}
+####repeat for some other OTUs, whether they look sweet as well
+##Models ## lm is a simple linear model in R and it is exactly the same thing as an anova.
+### since this is the anova and anova wants normal distribution you do this with the log transformed data
+mod0<-lm((log(species$Otu021.Cryomonadida.Rhogostomidae.Rhogostomidae_X.sp.)+1)~ Ecoworm$Location)
+
+summary(mod0)###interestingly one of the location is not significant in difference for RhogostomaOTU21, so I can assume that the abundance in both canadian forest is the same for Rhogostoma
+AIC(mod0)
+boxplot((species[,21])~Forest)###here I boxplotted everything without the log to see the real difference in abundance
+
+mod1<-lm((log(species$Otu021.Cryomonadida.Rhogostomidae.Rhogostomidae_X.sp.)+1)~ Ecoworm$Worm)
+summary(mod1)####Earthwormpresence however is significant
+boxplot((species[,21])~Worm)
+
+mod2<-lm((log(species$Otu021.Cryomonadida.Rhogostomidae.Rhogostomidae_X.sp.)+1)~ as.factor(Ecoworm$Depth))
+summary(mod2)####Sampling depth is also significant
+boxplot((species[,21])~Depth)####Adjusted R-squared explains how much variation is explained by this specific variable, R square will alway increase with multiple factors, 
+AIC(mod2)### the AIC measures how wrong your model ist/how far you are from having the best model, the closer to 0 is better, the more factors you put the more it will increase, so take care to keep it "relatively low" 
+
+mod3<-lm((log(species$Otu021.Cryomonadida.Rhogostomidae.Rhogostomidae_X.sp.)+1)~ Ecoworm$Location+as.factor(Ecoworm$Depth)+Ecoworm$Worm)
+summary(mod3)####no CAK difference, but everything else significant
+boxplot((species[,21])~Ecoworm$Location+Ecoworm$Worm+Ecoworm$Depth)
+
+```
+
+
+```{r}
+par(mfrow=c(2,2))
+plot(mod3, which=c(1:4), add.smooth=FALSE, pch=20, las=1)##normalQ-Q shows us that the data is normally distributed along the line, cooks distance shows outliers, rule of thumb: values above ten are outliers, the other graphs show a variance into the positive or negative, if it is obviously dragged into one direction it should be weird, here everything looks sweet
+
+```
+
+```{r}
+###we need the effect, p-value and r squared for each OTU
+###so let's write a loop and put the results in a data.frame (no matrix, matrices will not hold numbers)
+
+
+
+for (OTU in 1:ncol(species_mat)){
+  x <- colnames(species_mat)[OTU]
+  y <- summary(lm((log(species_mat[,OTU]+1)~Ecoworm$Location+as.factor(Ecoworm$Depth)+Ecoworm$Worm)))
+  z <- cbind(LocationCAX<- y$coefficients[2,1], LocationCAX_p <- y$coefficients[2,4],                        
+             LocationUSA<- y$coefficients[3,1], LocationUSA_p <- y$coefficients[3,4],
+             Depth<- y$coefficients[4,1], Depth_p <- y$coefficients[4,4],
+             Worm<- y$coefficients[5,1], Worm_p <- y$coefficients[5,4],
+             R_sqaured <- y$r.squared)
+  
+  z = as.data.frame(z)
+  if (OTU==1){
+    Anova_Results<-z
+  } else{
+    Anova_Results<-rbind(Anova_Results,z)
+  }
+  
+ # print(y)
+}
+class(Anova_Results)
+row.names(Anova_Results)<-colnames(species_mat)
+colnames(Anova_Results)<-c('LocationCAX','LocationCAX_p','LocationUSA',"LocationUSA_p",'Depth',"Depth_p",'Worm','Worm_p','R_sqaured')
+Anova_Results
+
+
+```
+
+```{r}
+###let's see the distribution of significant effects for each OTU
+###we are aiming to identify 'real' positives, just by chance many negatives will appear positive (actually 5% of the data should be, since our confidence intervall is 0,05, we need to delete those, that is why we plot and then split)
+Anova_Results$LocationCAX = as.numeric(as.matrix(Anova_Results$LocationCAX))
+Anova_Results$LocationUSA = as.numeric(as.matrix(Anova_Results$LocationUSA))
+Anova_Results$Depth = as.numeric(as.matrix(Anova_Results$Depth))
+Anova_Results$Worm = as.numeric(as.matrix(Anova_Results$Worm))
+
+Anova_Results$LocationCAXp = as.numeric(as.matrix(Anova_Results$LocationCAX_p))
+Anova_Results$LocationUSAp = as.numeric(as.matrix(Anova_Results$LocationUSA_p))
+Anova_Results$Depthp = as.numeric(as.matrix(Anova_Results$Depth_p))
+Anova_Results$Wormp = as.numeric(as.matrix(Anova_Results$Worm_p))
+
+
+par(mfrow=c(2,2))
+plot(as.numeric(Anova_Results$LocationCAX), -log(as.numeric(Anova_Results$LocationCAX_p)), col=Ecoworm$Location)
+plot(as.numeric(Anova_Results$LocationUSA), -log(as.numeric(Anova_Results$LocationUSA_p)), col=Ecoworm$Location)
+plot(as.numeric(Anova_Results$Depth), -log(as.numeric(Anova_Results$Depth_p)), col=Ecoworm$Location)
+plot(as.numeric(Anova_Results$Worm), -log(as.numeric(Anova_Results$Worm_p)), col=Ecoworm$Location)
+
+#adjust p values - it adjusts for the number of testings, every testing will increase the chance for false positives, so we set our threshold higher to only keep the "best" p values
+
+LocationCAX_p_adjusted<-p.adjust(Anova_Results$LocationCAX_p, method="BH")
+LocationUSA_p_adjusted<-p.adjust(Anova_Results$LocationUSA_p, method="BH")
+Depth_p_adjusted<-p.adjust(Anova_Results$Depth_p, method="BH")
+Worm_p_adjusted<-p.adjust(Anova_Results$Worm_p, method="BH")
+
+length(Anova_Results$LocationCAX[LocationCAX_p_adjusted<0.05])##it is really uninportant which column I select, I compare"when CAX_p_adjusted is smaller than 0.05 keep whole row";;; so here we only pick the ones that are really Significant, the ones that still after adjusting have a p value of 0.05
+
+length(Anova_Results$LocationCAX[LocationCAX_p_adjusted<0.05&LocationUSA_p_adjusted<0.05&Depth_p_adjusted<0.05&Worm_p_adjusted<0.05]) ###this only shows OTUs that are depenend on all the variables
+
+CAX_depenend<-Anova_Results$LocationCAX[LocationCAX_p_adjusted<0.05] ###this only shows OTUs that are depenend on CAX
+length(CAX_depenend)
+
+USA_depenend<-Anova_Results$LocationCAX[LocationUSA_p_adjusted<0.05] ###this only shows OTUs that are depenend on USA
+length(USA_depenend)
+
+Depth_depenend<-Anova_Results$LocationCAX[Depth_p_adjusted<0.05] ###this only shows OTUs that are depenend on Depth
+length(Depth_depenend)
+
+Worm_depenend<-Anova_Results$LocationCAX[Worm_p_adjusted<0.05] ###this only shows OTUs that are depenend on Worm
+length(Worm_depenend)
+Worm_depenend
+
+require(eulerr)
+
+VENN = eulerr::euler(list(CAX=CAX_depenend, USA=USA_depenend,Depth =Depth_depenend,Worm = Worm_depenend))
+
+VENN = eulerr::euler(list(location= unique(c(CAX_depenend,USA_depenend)),Depth =Depth_depenend,Worm = Worm_depenend))
+
+plot (VENN)
+
+
+
+
+
+
+```
+
+
