@@ -404,65 +404,98 @@ dim(USA5y)
 require(wTO)
 
 
-USA10y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(USA10y)), Overlap = row.names(t(USA10y)),
+USA10y_Network<-wTO.Complete(k = 3, n = 1000, as.data.frame(t(USA10y)), Overlap = row.names(t(USA10y)),
   method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
   savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
   normalize = F, plot = T)
 
-USA5y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(USA5y)), Overlap = row.names(t(USA5y)),
+USA5y_Network<-wTO.Complete(k = 3, n = 1000, as.data.frame(t(USA5y)), Overlap = row.names(t(USA5y)),
   method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
   savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
   normalize = F, plot = T)
 
-CAX10y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAX10y)), Overlap = row.names(t(CAX10y)),
+CAX10y_Network<-wTO.Complete(k = 3, n = 1000, as.data.frame(t(CAX10y)), Overlap = row.names(t(CAX10y)),
   method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
   savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
   normalize = F, plot = T)
 
-CAX5y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAX5y)), Overlap = row.names(t(CAX5y)),
+CAX5y_Network<-wTO.Complete(k = 3, n = 1000, as.data.frame(t(CAX5y)), Overlap = row.names(t(CAX5y)),
   method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
   savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
   normalize = F, plot = T)
 
-CAK10y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAK10y)), Overlap = row.names(t(CAK10y)),
+CAK10y_Network<-wTO.Complete(k = 3, n = 1000, as.data.frame(t(CAK10y)), Overlap = row.names(t(CAK10y)),
   method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
   savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
   normalize = F, plot = T)
 
-CAK5y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAK5y)), Overlap = row.names(t(CAK5y)),
+CAK5y_Network<-wTO.Complete(k = 3, n = 1000, as.data.frame(t(CAK5y)), Overlap = row.names(t(CAK5y)),
   method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
   savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
   normalize = F, plot = T)
 
 
-USA10n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(USA10n)), Overlap = row.names(t(USA10n)),
+USA10n_Network<-wTO.Complete(k = 3, n = 1000, as.data.frame(t(USA10n)), Overlap = row.names(t(USA10n)),
   method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
   savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
   normalize = F, plot = T)
 
-USA5n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(USA5n)), Overlap = row.names(t(USA5n)),
+USA5n_Network<-wTO.Complete(k = 3, n = 1000, as.data.frame(t(USA5n)), Overlap = row.names(t(USA5n)),
   method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
   savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
   normalize = F, plot = T)
 
-CAX10n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAX10n)), Overlap = row.names(t(CAX10n)),
+CAX10n_Network<-wTO.Complete(k = 3, n = 1000, as.data.frame(t(CAX10n)), Overlap = row.names(t(CAX10n)),
   method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
   savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
   normalize = F, plot = T)
 
-CAX5n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAX5n)), Overlap = row.names(t(CAX5n)),
+CAX5n_Network<-wTO.Complete(k = 3, n = 1000, as.data.frame(t(CAX5n)), Overlap = row.names(t(CAX5n)),
   method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
   savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
   normalize = F, plot = T)
 
-CAK10n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAK10n)), Overlap = row.names(t(CAK10n)),
+CAK10n_Network<-wTO.Complete(k = 3, n = 1000, as.data.frame(t(CAK10n)), Overlap = row.names(t(CAK10n)),
   method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
   savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
   normalize = F, plot = T)
 
-CAK5n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAK5n)), Overlap = row.names(t(CAK5n)),
+CAK5n_Network<-wTO.Complete(k = 3, n = 1000, as.data.frame(t(CAK5n)), Overlap = row.names(t(CAK5n)),
   method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
   savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
   normalize = F, plot = T)
+
+write.csv(USA10y_Network$wTO, "D:/Backup/Projekte/Github/Wormland/USA10y_Network.csv", row.names = F)
+
+write.csv(USA5y_Network$wTO, "D:/Backup/Projekte/Github/Wormland/USA5y_Network.csv", row.names = F)
+
+write.csv(CAX10y_Network$wTO, "D:/Backup/Projekte/Github/Wormland/CAX10y_Network.csv", row.names = F)
+
+write.csv(CAX5y_Network$wTO, "D:/Backup/Projekte/Github/Wormland/CAX5y_Network.csv", row.names = F)
+
+write.csv(CAK10y_Network$wTO, "D:/Backup/Projekte/Github/Wormland/CAK10y_Network.csv", row.names = F)
+
+write.csv(CAK5y_Network$wTO, "D:/Backup/Projekte/Github/Wormland/CAK5y_Network.csv", row.names = F)
+
+
+
+
+write.csv(USA10n_Network$wTO, "D:/Backup/Projekte/Github/Wormland/USA10n_Network.csv", row.names = F)
+
+write.csv(USA5n_Network$wTO, "D:/Backup/Projekte/Github/Wormland/USA5n_Network.csv", row.names = F)
+
+write.csv(CAX10n_Network$wTO, "D:/Backup/Projekte/Github/Wormland/CAX10n_Network.csv", row.names = F)
+
+write.csv(CAX5n_Network$wTO, "D:/Backup/Projekte/Github/Wormland/CAX5n_Network.csv", row.names = F)
+
+write.csv(CAK10n_Network$wTO, "D:/Backup/Projekte/Github/Wormland/CAK10n_Network.csv", row.names = F)
+
+write.csv(CAK5n_Network$wTO, "D:/Backup/Projekte/Github/Wormland/CAK5n_Network.csv", row.names = F)
+
+
+
+
+
+
 
 ```
