@@ -2,6 +2,8 @@ setwd('C:/Users/deisy/Desktop/PhD/05_Courses_Evop/Wormland/Wormland/')
 
 files = system('ls *Network.csv', intern = T)
 
+# files = list.files(pattern="*Network.csv")
+
 for ( i in 1:length(files)){
   name = gsub(pattern = '_Network.csv', 
               replacement = '',
@@ -13,5 +15,12 @@ for ( i in 1:length(files)){
   assign(name, x)
 }
 
-
 require(wTO)
+NetVis(Node.1 = USA10n$Node.1, Node.2 = USA10n$Node.2,
+       wTO = USA10n$wTO_sign, pval = USA10n$pval_sig, 
+       MakeGroups = 'louvain', cutoff = list(kind = "Threshold", value = 0.1))
+
+
+require(igraph)
+g <- graph_from_data_frame(USA10n)
+
