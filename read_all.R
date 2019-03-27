@@ -28,17 +28,31 @@ g <- graph_from_data_frame(USA10n)
 TAX = read.csv('C:/Users/deisy/Desktop/PhD/05_Courses_Evop/Wormland/Wormland/EcoW-Tax-Tree.csv', sep = ';')
 TAX
 
-TAX_tmp1 = cbind.data.frame(Node1 = TAX$Order, Node.2 = TAX$Family)
-TAX_tmp2 = cbind.data.frame(Node1 = TAX$Family, Node.2 = TAX$Genus)
-TAX_tmp3 = cbind.data.frame(Node1 = TAX$Genus, Node.2 = TAX$OTU)
-TAX_nodes = cbind.data.frame(Node1 = TAX$OTU, size = TAX$Sum)
-Others = cbind(Node1 = c(as.character(TAX$Order), as.character(TAX$Family), as.character(TAX$Genus)), size = 0) %>% unique()
+TAX_tmp1 = cbind.data.frame(Node.1 = TAX$Order, Node.2 = TAX$Family)
+TAX_tmp2 = cbind.data.frame(Node.1 = TAX$Family, Node.2 = TAX$Genus)
+TAX_tmp3 = cbind.data.frame(Node.1 = TAX$Genus, Node.2 = TAX$OTU)
+color = colorRampPalette(c('blue', 'red', 'purple', 'green', 'orange'))(24)
+
+TAX_tmp3$color = TAX_tmp2$color = TAX_tmp1$color = color[unclass(TAX_tmp1$Node.1)]
+COLS = rbind.data.frame(cbind(Node.1 = TAX_tmp1$Node.1, color = TAX_tmp1$color),
+cbind(Node.1 = TAX_tmp2$Node.1, color = TAX_tmp2$color),
+cbind(Node.1 = TAX_tmp3$Node.1, color = TAX_tmp3$color),
+cbind(Node.1 = TAX_tmp1$Node.2, color = TAX_tmp1$color),
+cbind(Node.1 = TAX_tmp2$Node.2, color = TAX_tmp2$color),
+cbind(Node.1 = TAX_tmp3$Node.2, color = TAX_tmp3$color))
+
+
+TAX_nodes = cbind.data.frame(Node.1 = TAX$OTU, size = TAX$Sum)
+Others = cbind(Node.1 = c(as.character(TAX$Order), as.character(TAX$Family), as.character(TAX$Genus)), size = 0) %>% unique()
 TAX_nodes = rbind(TAX_nodes, Others)
+TAX_nodes = plyr::join(TAX_nodes, COLS)
 TAX_tree = rbind(TAX_tmp1, TAX_tmp2, TAX_tmp3)
 TAX_nodes$size = as.numeric(TAX_nodes$size)
 
+require(RColorBrewer)
+
 g_tree = graph_from_data_frame(TAX_tree, directed = F, vertices =  TAX_nodes)
-V(g_tree)$size = (V(g_tree)$size)/ max(V(g_tree)$size) * 10
+V(g_tree)$size = CoDiNA::normalize(V(g_tree)$size) * 5
 E(g_tree)$width = 1
 plot(g_tree, vertex.label = NA)
 
