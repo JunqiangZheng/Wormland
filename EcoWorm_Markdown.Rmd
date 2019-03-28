@@ -67,7 +67,7 @@ boxplot(log(species[,1]+1) ~ Ecoworm$Location+Depth) ###$Location is exactly the
 
 ```{r}
 #See Bargraph of the variation of the dataset by PCA
-
+species_mat<-as.matrix(species)
 pca = prcomp(t(species_mat), scale. = T, center = T)
 plot(pca)### probably only the first axis explains most of our variation in the data
 
@@ -79,10 +79,10 @@ plot(pca)### probably only the first axis explains most of our variation in the 
 ```{r}
 #See the PCA
 
-plot(pca$rotation, col = c('red', 'blue', 'green')[unclass(Ecoworm$Location)], pch = 16, las = 1) ### better PCA code, this one is centered, I gave three colour for three different Location factors, I did not know which colour represents which location
+plot(pca$rotation, col = c('deeppink4', 'blue', 'darkslategray3')[unclass(Ecoworm$Location)], pch = 16, las = 1) ### better PCA code, this one is centered, I gave three colour for three different Location factors, I did not know which colour represents which location
 legend('bottomleft', 
        levels(Ecoworm$Location), 
-       col = c('red', 'blue', 'green'), 
+       col = c('deeppink4', 'blue', 'darkslategray3'), 
        pch = 16, 
        bty = 'n')
 levels(Ecoworm$Location)###I used this to get the levels of the location and to know which colour refers to what
@@ -91,12 +91,12 @@ levels(Ecoworm$Location)###I used this to get the levels of the location and to 
 ```
 
 ```{r}
-#Make PCA for two factors, here location and depth
+#Make PCA for two factors, here location and worm
 
-plot(pca$rotation, col = c('red', 'blue', 'green')[unclass(Ecoworm$Location)], pch = c(16,4)[unclass(Ecoworm$Worm)], las = 1) ### better PCA code, this one is centered, I gave three colour for three different Location factors, I did not know which colour represents which location 
+plot(pca$rotation, col = c('deeppink4', 'blue', 'darkslategray3')[unclass(Ecoworm$Location)], pch = c(16,4)[unclass(Ecoworm$Worm)], las = 1) ### better PCA code, this one is centered, I gave three colour for three different Location factors, I did not know which colour represents which location 
 legend('bottomleft', 
        c(levels(Ecoworm$Location), levels(Ecoworm$Worm)), 
-       col = c('red', 'blue', 'green', 'lightgreen', 'lightblue'), 
+       col = c('deeppink4', 'blue', 'darkslategray3','black','black'), 
        pch = c(15,15,15,16,4), ####15,15,15, refer to the three levels of location, 16,4 refer to the two levels of worm presence. 
        bty = 'n')
 
@@ -203,7 +203,7 @@ boxplot((species[,1])~Ecoworm$Location,Ecoworm$Worm,Ecoworm$Depth)
 ```{r}
 ####
 par(mfrow=c(2,2))
-plot(mod3, which=c(1:4), add.smooth=FALSE, pch=20, las=1)##normalQ-Q shows us that the data is normally distributed along the line, cooks distance shows outliers, rule of thumb: values above ten are outliers, the other graphs show a variance into the positive or negative, if it is obviously dragged into one direction it should be weird, here everything looks sweet
+plot(mod3, which=c(1:4), add.smooth=FALSE, pch=20, las=1, col = c('deeppink4', 'blue', 'darkslategray3'))##normalQ-Q shows us that the data is normally distributed along the line, cooks distance shows outliers, rule of thumb: values above ten are outliers, the other graphs show a variance into the positive or negative, if it is obviously dragged into one direction it should be weird, here everything looks sweet
 ```
 
 ```{r}
@@ -318,6 +318,9 @@ require(eulerr)
 
 VENN = eulerr::euler(list(CAX=CAX_depenend, USA=USA_depenend,Depth =Depth_depenend,Worm = Worm_depenend))
 
+
+
+
 VENN = eulerr::euler(list(location= unique(c(CAX_depenend,USA_depenend)),Depth =Depth_depenend,Worm = Worm_depenend))
 
 plot (VENN)
@@ -359,7 +362,7 @@ Anova_Results
 ```
 
 ```{r}
-###let's do correlations
+###let's do correlations // calculate networks
 
 ##we need to create subsets of our data
 log_species<-log(species+1)
@@ -402,7 +405,7 @@ dim(USA5y)
 
 
 require(wTO)
-
+###this calculates the networks
 
 USA10y_Network<-wTO.Complete(k = 3, n = 1000, as.data.frame(t(USA10y)), Overlap = row.names(t(USA10y)),
   method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
@@ -465,6 +468,8 @@ CAK5n_Network<-wTO.Complete(k = 3, n = 1000, as.data.frame(t(CAK5n)), Overlap = 
   savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
   normalize = F, plot = T)
 
+##save the networks
+
 write.csv(USA10y_Network$wTO, "D:/Backup/Projekte/Github/Wormland/USA10y_Network.csv", row.names = F)
 
 write.csv(USA5y_Network$wTO, "D:/Backup/Projekte/Github/Wormland/USA5y_Network.csv", row.names = F)
@@ -494,8 +499,145 @@ write.csv(CAK5n_Network$wTO, "D:/Backup/Projekte/Github/Wormland/CAK5n_Network.c
 
 
 
+```
+
+```{r}
+
+#####now let us look at the distances of communities, for this we need a similarity matrix, like bray curtis
+log_species<-log(species+1)
+
+USA10y<- log_species[Ecoworm$Location=='USA' & Ecoworm$Depth==10 & Ecoworm$Worm=='yes',]
+dim(USA10y)
+
+USA5y<- log_species[Ecoworm$Location=='USA' & Ecoworm$Depth==5 & Ecoworm$Worm=='yes',]
+dim(USA5y)
+
+CAX10y<- log_species[Ecoworm$Location=='CAX' & Ecoworm$Depth==10 & Ecoworm$Worm=='yes',]
+dim(USA10y)
+
+CAX5y<- log_species[Ecoworm$Location=='CAX' & Ecoworm$Depth==5 & Ecoworm$Worm=='yes',]
+dim(USA5y)
+
+CAK10y<- log_species[Ecoworm$Location=='CAK' & Ecoworm$Depth==10 & Ecoworm$Worm=='yes',]
+dim(USA10y)
+
+CAK5y<- log_species[Ecoworm$Location=='CAK' & Ecoworm$Depth==5 & Ecoworm$Worm=='yes',]
+dim(USA5y)
+
+USA10n<- log_species[Ecoworm$Location=='USA' & Ecoworm$Depth==10 & Ecoworm$Worm=='no',]
+dim(USA10y)
+
+USA5n<- log_species[Ecoworm$Location=='USA' & Ecoworm$Depth==5 & Ecoworm$Worm=='no',]
+dim(USA5y)
+
+CAX10n<- log_species[Ecoworm$Location=='CAX' & Ecoworm$Depth==10 & Ecoworm$Worm=='no',]
+dim(USA10y)
+
+CAX5n<- log_species[Ecoworm$Location=='CAX' & Ecoworm$Depth==5 & Ecoworm$Worm=='no',]
+dim(USA5y)
+
+CAK10n<- log_species[Ecoworm$Location=='CAK' & Ecoworm$Depth==10 & Ecoworm$Worm=='no',]
+dim(USA10y)
+
+CAK5n<- log_species[Ecoworm$Location=='CAK' & Ecoworm$Depth==5 & Ecoworm$Worm=='no',]
+dim(USA5y)
+
+#
+
+library(vegan)
+BrayDist_species=vegdist(species, method='bray')
+
+
+
+BrayDist_USA10y=vegdist(USA10y, method='bray')
+
+BrayDist_USA5y=vegdist(USA5y, method='bray')
+
+BrayDist_USA5n=vegdist(USA5n, method='bray')
+
+BrayDist_USA10n=vegdist(USA10y, method='bray')
+
+
+
+BrayDist_CAK10y=vegdist(CAK10y, method='bray')
+
+BrayDist_CAK5y=vegdist(CAK5y, method='bray')
+
+BrayDist_CAK5n=vegdist(CAK5n, method='bray')
+
+BrayDist_CAK10n=vegdist(CAK10y, method='bray')
+
+
+
+BrayDist_CAX10y=vegdist(CAX10y, method='bray')
+
+BrayDist_CAX5y=vegdist(CAX5y, method='bray')
+
+BrayDist_CAX5n=vegdist(CAX5n, method='bray')
+
+BrayDist_CAX10n=vegdist(CAX10y, method='bray')
+
+
+row.names(species)=paste0(Ecoworm$Sample.ID, Ecoworm$No.)
+library(heatmap3)
+
+plot(hclust(BrayDist))###plots a dendrogram, but not as sweet as heatmap WITH dendrogram
+
+heatmap3(as.matrix(BrayDist), col=colorRampPalette(c('blue', 'red'))(24))
+x11()##figure margins too large, that is why we need x11 to open it in an extra window## I need to type in down, does not work in Markdown? 
+heatmap3(as.matrix(BrayDist), col=colorRampPalette(c('black', 'white'))(24))##sweet
+?heatmap3
+
+
+
 
 
 
 
 ```
+
+Cerco_env<-cbind(Forest,Worm,Depth)
+
+```{r}
+###NMDS Plot
+Cerco_env<-Ecoworm[,5:7]
+adonis(species ~ Forest*Worm*Depth, permutations=999)
+
+Cerco.NMDS.bray<-metaMDS(species, dist="bray", k=3, trymax=100,wascores=TRUE, trace=TRUE, zero="add")
+
+(fit.Cerco.NMDS.bray <- envfit(Cerco.NMDS.bray, env=Cerco_env, perm = 999)) 
+ordiplot(Cerco.NMDS.bray, display="sites") 
+
+
+plot(Cerco.NMDS.bray)
+mds.fig <- ordiplot(Cerco.NMDS.bray, type = "none")
+# plot just the samples, colour by habitat, pch=19 means plot a circle
+
+ordihull(Cerco.NMDS.bray,groups=as.factor(Forest), draw="polygon",col="grey90",label=T)
+ordihull(Cerco.NMDS.bray,groups=Cerco.env$Type, draw="polygon",col="grey90",label=F)
+#Cerco.env$Treatment
+#p05, p10 = plus
+#n05,n10 = negative
+points(mds.fig, "sites", pch = 17, col = "orange", select = Cerco.env$Treatment == "EW.p05")
+points(mds.fig, "sites", pch = 19, col = "red", select = Cerco.env$Treatment == "EW.p10")
+points(mds.fig, "sites", pch = 19, col = "dodgerblue", select = Cerco.env$Treatment == "EW.n05")
+points(mds.fig, "sites", pch = 19, col = "blue", select = Cerco.env$Treatment == "EW.n10")
+
+
+# 
+# adonis(Cerco.spe ~ Treatment*Type, data=Cerco.env, permutations=999)
+# ?adonis
+# head(Cerco.spe)
+# Cerco.env
+# ## NMDS
+# Cerco.NMDS.bray<-metaMDS(Cerco.spe, dist="bray", k=3, trymax=100,wascores=TRUE, trace=TRUE, zero="add")
+# 
+# 
+# (fit.Cerco.NMDS.bray <- envfit(Cerco.NMDS.bray, Cerco.env, perm = 999)) 
+# ordiplot(Cerco.NMDS.bray, display="sites") 
+
+
+
+```
+
+

@@ -1,0 +1,179 @@
+---
+title: "EcoWorm_Networks_Markdown"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+CAK10n_Network<-read.csv('D:/Backup/Projekte/Github/Wormland/CAK10n_Network.csv', header=T, stringsAsFactors=T)
+
+CAK5n_Network<-read.csv('D:/Backup/Projekte/Github/Wormland/CAK5n_Network.csv', header=T, stringsAsFactors=T)
+
+CAK10y_Network<-read.csv('D:/Backup/Projekte/Github/Wormland/CAK10y_Network.csv', header=T, stringsAsFactors=T)
+
+CAK5y_Network<-read.csv('D:/Backup/Projekte/Github/Wormland/CAK5y_Network.csv', header=T, stringsAsFactors=T)
+
+
+CAX10n_Network<-read.csv('D:/Backup/Projekte/Github/Wormland/CAX10n_Network.csv', header=T, stringsAsFactors=T)
+
+CAX5n_Network<-read.csv('D:/Backup/Projekte/Github/Wormland/CAX5n_Network.csv', header=T, stringsAsFactors=T)
+
+CAX10y_Network<-read.csv('D:/Backup/Projekte/Github/Wormland/CAX10y_Network.csv', header=T, stringsAsFactors=T)
+
+CAX5y_Network<-read.csv('D:/Backup/Projekte/Github/Wormland/CAX5y_Network.csv', header=T, stringsAsFactors=T)
+
+
+
+USA10n_Network<-read.csv('D:/Backup/Projekte/Github/Wormland/USA10n_Network.csv', header=T, stringsAsFactors=T)
+
+USA5n_Network<-read.csv('D:/Backup/Projekte/Github/Wormland/USA5n_Network.csv', header=T, stringsAsFactors=T)
+
+USA10y_Network<-read.csv('D:/Backup/Projekte/Github/Wormland/USA10y_Network.csv', header=T, stringsAsFactors=T)
+
+USA5y_Network<-read.csv('D:/Backup/Projekte/Github/Wormland/USA5y_Network.csv', header=T, stringsAsFactors=T)
+
+
+##much better, read the files in in a loop
+
+###we want to sort our networks, only p values that are loewer than 0.05 (or, if we like 0.01 should be considered, -if- the pvalue (column 5) is lower than this, we need col 1,2 and 3)
+setwd('D:/Backup/Projekte/Github/Wormland/')
+
+#files = system('ls *Network.csv', intern = T)
+
+files = list.files(pattern="*Network.csv")
+
+for ( i in 1:length(files)){
+  name = gsub(pattern = '_Network.csv', 
+              replacement = '',
+              x = files[i])
+  ### Filter the data in the loop
+  x = read.csv(files[i])
+  x = x[,c(1:3,5)]
+  x$wTO_sign = ifelse(x$pval_sig< 0.05, x$wTO_sign, 0)
+  assign(name, x)
+}
+
+require(wTO)
+NetVis(Node.1 = USA10n$Node.1, Node.2 = USA10n$Node.2,
+       wTO = USA10n$wTO_sign, pval = USA10n$pval_sig, 
+       MakeGroups = 'louvain', cutoff = list(kind = "Threshold", value = 0.1))
+
+
+require(igraph)
+g <- graph_from_data_frame(USA10n)
+# V(g)$size=3
+# E(g)$weight=3
+plot(g, layout = igraph::layout_in_circle, vertex.label=NA)
+
+
+
+deg.dist <- degree_distribution(g, cumulative=F, mode="all")
+
+plot( x=0:max(degree(g)), y=1-deg.dist, pch=19, cex=1.2, col="orange", 
+
+      xlab="Degree", ylab="Frequency")
+
+
+
+```
+
+
+```{r}
+
+###create tax tree like in florines paper, just with levels order, family, genus and OTU with sizes. 
+
+TAX<-read.csv("D:\\Backup\\Projekte/Github/Wormland/EcoW-Tax-Tree.csv", header=T, stringsAsFactors=TRUE, sep=";")
+
+TAX
+
+TAX_tmp1 = cbind.data.frame(Node1 = TAX$Order, Node.2 = TAX$Family)
+TAX_tmp2 = cbind.data.frame(Node1 = TAX$Family, Node.2 = TAX$Genus)
+TAX_tmp3 = cbind.data.frame(Node1 = TAX$Genus, Node.2 = TAX$OTU)
+TAX_nodes = cbind.data.frame(Node1 = TAX$OTU, size = TAX$Sum)
+Others = cbind(Node1 = c(as.character(TAX$Order), as.character(TAX$Family), as.character(TAX$Genus)), size = 0) %>% unique()
+TAX_nodes = rbind(TAX_nodes, Others)
+TAX_tree = rbind(TAX_tmp1, TAX_tmp2, TAX_tmp3)
+TAX_nodes$size = as.numeric(TAX_nodes$size)
+
+g_tree = graph_from_data_frame(TAX_tree, directed = F, vertices =  TAX_nodes)
+V(g_tree)$size = (V(g_tree)$size)/ max(V(g_tree)$size) * 30
+E(g_tree)$width = 1
+plot(g_tree, layout = igraph::layout.davidson.harel, vertex.label = NA)###quite sweet
+tkplot(g_tree, vertex.label = NA)
+```
+```{r}
+
+###create tax tree like in florines paper, just with levels order, family, genus and OTU with sizes. 
+
+TAX<-read.csv("D:\\Backup\\Projekte/Github/Wormland/EcoW-Tax-Tree.csv", header=T, stringsAsFactors=TRUE, sep=";")
+
+TAX
+
+TAX_tmp1 = cbind.data.frame(Node1 = TAX$Order, Node.2 = TAX$Family)
+TAX_tmp3 = cbind.data.frame(Node1 = TAX$Family, Node.2 = TAX$OTU)
+TAX_nodes = cbind.data.frame(Node1 = TAX$OTU, size = TAX$Sum)
+Others = cbind(Node1 = c(as.character(TAX$Order), as.character(TAX$Family)), size = 0) %>% unique()
+TAX_nodes = rbind(TAX_nodes, Others)
+TAX_tree = rbind(TAX_tmp1, TAX_tmp3)
+TAX_nodes$size = as.numeric(TAX_nodes$size)
+
+g_tree = graph_from_data_frame(TAX_tree, directed = F, vertices =  TAX_nodes)
+V(g_tree)$size = (V(g_tree)$size)/ max(V(g_tree)$size) * 30
+E(g_tree)$width = 1
+plot(g_tree, layout = igraph::layout.davidson.harel, vertex.label = NA)###quite sweet
+plot(g_tree, layout = igraph::layout.davidson.harel, vertex.label = NA)
+tkplot(g_tree, layout = igraph::layout_with_fr,vertex.label = NA)
+
+```
+
+
+```{r}
+TAX_tmp1 = cbind.data.frame(Node1 = TAX$Order, Node.2 = TAX$Family)
+TAX_tmp2 = cbind.data.frame(Node1 = TAX$Family, Node.2 = TAX$Genus)
+TAX_tmp3 = cbind.data.frame(Node1 = TAX$Genus, Node.2 = TAX$OTU)
+TAX_nodes = cbind.data.frame(Node1 = TAX$OTU, size = TAX$Sum)
+Others = cbind(Node1 = c(as.character(TAX$Order), as.character(TAX$Family), as.character(TAX$Genus)), size = 0) %>% unique()
+TAX_tmp1 = cbind.data.frame(Node.1 = TAX$Order, Node.2 = TAX$Family)
+TAX_tmp2 = cbind.data.frame(Node.1 = TAX$Family, Node.2 = TAX$Genus)
+TAX_tmp3 = cbind.data.frame(Node.1 = TAX$Genus, Node.2 = TAX$OTU)
+color = colorRampPalette(c('blue', 'red', 'purple', 'green', 'orange'))(24)
+
+TAX_tmp3$color = TAX_tmp2$color = TAX_tmp1$color = color[unclass(TAX_tmp1$Node.1)]
+COLS = rbind.data.frame(cbind(Node.1 = as.character(TAX_tmp1$Node.1), color = TAX_tmp1$color),
+cbind(Node.1 = as.character(TAX_tmp2$Node.1), color = TAX_tmp2$color),
+cbind(Node.1 = as.character(TAX_tmp3$Node.1), color = TAX_tmp3$color),
+cbind(Node.1 = as.character(TAX_tmp1$Node.2), color = TAX_tmp1$color),
+cbind(Node.1 = as.character(TAX_tmp2$Node.2), color = TAX_tmp2$color),
+cbind(Node.1 = as.character(TAX_tmp3$Node.2), color = TAX_tmp3$color))  %>% unique()
+
+COLS
+TAX_nodes = cbind.data.frame(Node.1 = TAX$OTU, size = TAX$Sum)
+Others = cbind(Node.1 = c(as.character(TAX$Order), as.character(TAX$Family), as.character(TAX$Genus)), size = 0) %>% unique()
+TAX_nodes = rbind(TAX_nodes, Others)
+TAX_nodes = plyr::join(TAX_nodes, COLS, match = 'first') %>% unique()
+TAX_tree = rbind(TAX_tmp1, TAX_tmp2, TAX_tmp3) %>% unique() ###the unique here makes every link be connected only by one line
+TAX_nodes$size = as.numeric(TAX_nodes$size)
+
+require(RColorBrewer)
+require(CoDiNA)
+g_tree = graph_from_data_frame(TAX_tree, directed = F, vertices =  TAX_nodes)
+V(g_tree)$size = (V(g_tree)$size)/ max(V(g_tree)$size) * 60
+V(g_tree)$color = #(V(g_tree)$size)/ max(V(g_tree)$size) * 30
+V(g_tree)$size = CoDiNA::normalize(V(g_tree)$size) * 5
+E(g_tree)$width = 1.5
+plot(g_tree, vertex.label.cex = 0.3)
+
+#g_tree = graph_from_data_frame(TAX_tree, directed = F, vertices =  TAX_nodes)
+#V(g_tree)$size = (V(g_tree)$size)/ max(V(g_tree)$size) * 30
+#E(g_tree)$width = 1
+
+
+```
+
+
+
+

@@ -67,30 +67,112 @@ require(igraph)
 g <- graph_from_data_frame(USA10n)
 V(g)$size=3
 E(g)$weight=3
-plot(g, vertex.label=NA)
+plot(g, layout = igraph::layout_in_circle, vertex.label=NA)
 
 
-sw <- sample_smallworld(g)
-
-plot(sw, vertex.size=6, vertex.label=NA, layout=layout_in_circle)
 
 
 ```
 
 
 ```{r}
-Ecoworm<-read.csv("D:\\Backup\\Projekte/Github/Wormland/EcoW-Tax-Tree.csv", header=T, stringsAsFactors=TRUE, sep=";")
 
-head(Ecoworm)
+###create tax tree like in florines paper, just with levels order, family, genus and OTU with sizes. 
 
-tr <- make_tree(Ecoworm[,1], children=Ecoworm[,2:3], mode = "undirected")
+TAX<-read.csv("D:\\Backup\\Projekte/Github/Wormland/EcoW-Tax-Tree.csv", header=T, stringsAsFactors=TRUE, sep=";")
 
-plot(tr, vertex.size=10, vertex.label=NA) 
+TAX
+
+TAX_tmp1 = cbind.data.frame(Node1 = TAX$Order, Node.2 = TAX$Family)
+TAX_tmp2 = cbind.data.frame(Node1 = TAX$Family, Node.2 = TAX$Genus)
+TAX_tmp3 = cbind.data.frame(Node1 = TAX$Genus, Node.2 = TAX$OTU)
+TAX_nodes = cbind.data.frame(Node1 = TAX$OTU, size = TAX$Sum)
+Others = cbind(Node1 = c(as.character(TAX$Order), as.character(TAX$Family), as.character(TAX$Genus)), size = 0) %>% unique()
+TAX_nodes = rbind(TAX_nodes, Others)
+TAX_tree = rbind(TAX_tmp1, TAX_tmp2, TAX_tmp3)
+TAX_nodes$size = as.numeric(TAX_nodes$size)
+
+g_tree = graph_from_data_frame(TAX_tree, directed = F, vertices =  TAX_nodes)
+V(g_tree)$size = (V(g_tree)$size)/ max(V(g_tree)$size) * 30
+E(g_tree)$width = 1
+plot(g_tree, layout = igraph::layout.davidson.harel, vertex.label = NA)###quite sweet
+tkplot(g_tree, vertex.label = NA)
+```
+```{r}
+
+###create tax tree like in florines paper, just with levels order, family, genus and OTU with sizes. 
+
+TAX<-read.csv("D:\\Backup\\Projekte/Github/Wormland/EcoW-Tax-Tree.csv", header=T, stringsAsFactors=TRUE, sep=";")
+
+TAX
+
+TAX_tmp1 = cbind.data.frame(Node1 = TAX$Order, Node.2 = TAX$Family)
+TAX_tmp3 = cbind.data.frame(Node1 = TAX$Family, Node.2 = TAX$OTU)
+TAX_nodes = cbind.data.frame(Node1 = TAX$OTU, size = TAX$Sum)
+Others = cbind(Node1 = c(as.character(TAX$Order), as.character(TAX$Family)), size = 0) %>% unique()
+TAX_nodes = rbind(TAX_nodes, Others)
+TAX_tree = rbind(TAX_tmp1, TAX_tmp3)
+TAX_nodes$size = as.numeric(TAX_nodes$size)
+
+g_tree = graph_from_data_frame(TAX_tree, directed = F, vertices =  TAX_nodes)
+V(g_tree)$size = (V(g_tree)$size)/ max(V(g_tree)$size) * 30
+E(g_tree)$width = 1
+plot(g_tree, layout = igraph::layout.davidson.harel, vertex.label = NA)###quite sweet
+plot(g_tree, layout = igraph::layout.davidson.harel, vertex.label = NA)
+tkplot(g_tree, layout = igraph::layout_with_fr,vertex.label = NA)
+
+```
 
 
+```{r}
+TAX_tmp1 = cbind.data.frame(Node1 = TAX$Order, Node.2 = TAX$Family)
+TAX_tmp2 = cbind.data.frame(Node1 = TAX$Family, Node.2 = TAX$Genus)
+TAX_tmp3 = cbind.data.frame(Node1 = TAX$Genus, Node.2 = TAX$OTU)
+TAX_nodes = cbind.data.frame(Node1 = TAX$OTU, size = TAX$Sum)
+Others = cbind(Node1 = c(as.character(TAX$Order), as.character(TAX$Family), as.character(TAX$Genus)), size = 0) %>% unique()
+TAX_tmp1 = cbind.data.frame(Node.1 = TAX$Order, Node.2 = TAX$Family)
+TAX_tmp2 = cbind.data.frame(Node.1 = TAX$Family, Node.2 = TAX$Genus)
+TAX_tmp3 = cbind.data.frame(Node.1 = TAX$Genus, Node.2 = TAX$OTU)
+#color = colorRampPalette(c('blue', 'red', 'purple', 'green', 'orange'))(24)
 
+TAX_tmp3$color = TAX_tmp2$color = TAX_tmp1$color = color[unclass(TAX_tmp1$Node.1)]
+COLS = rbind.data.frame(cbind(Node.1 = as.character(TAX_tmp1$Node.1), color = TAX_tmp1$color),
+cbind(Node.1 = as.character(TAX_tmp2$Node.1), color = TAX_tmp2$color),
+cbind(Node.1 = as.character(TAX_tmp3$Node.1), color = TAX_tmp3$color),
+cbind(Node.1 = as.character(TAX_tmp1$Node.2), color = TAX_tmp1$color),
+cbind(Node.1 = as.character(TAX_tmp2$Node.2), color = TAX_tmp2$color),
+cbind(Node.1 = as.character(TAX_tmp3$Node.2), color = TAX_tmp3$color))  %>% unique()
+
+COLS
+TAX_nodes = cbind.data.frame(Node.1 = TAX$OTU, size = TAX$Sum)
+Others = cbind(Node.1 = c(as.character(TAX$Order), as.character(TAX$Family), as.character(TAX$Genus)), size = 0) %>% unique()
+TAX_nodes = rbind(TAX_nodes, Others)
+TAX_nodes = plyr::join(TAX_nodes, COLS, match = 'first') %>% unique()
+TAX_tree = rbind(TAX_tmp1, TAX_tmp2, TAX_tmp3) %>% unique() ###the unique here makes every link be connected only by one line
+TAX_nodes$size = as.numeric(TAX_nodes$size)
+
+require(RColorBrewer)
+require(CoDiNA)
+g_tree = graph_from_data_frame(TAX_tree, directed = F, vertices =  TAX_nodes)
+V(g_tree)$size = (V(g_tree)$size)/ max(V(g_tree)$size) * 30
+V(g_tree)$color# = (V(g_tree)$size)/ max(V(g_tree)$size) * 30
+V(g_tree)$size = CoDiNA::normalize(V(g_tree)$size) * 8
+E(g_tree)$width = 1
+#plot(g_tree, vertex.label.cex = 0.3)#creates labels in size 0.3
+plot(g_tree, vertex.label = NA)##creates tree without labels
+##now try which layout is the best:
+##plot(g_tree, layout = igraph::layout_in_circle , vertex.label = NA) #layout in circle is not bad
+##plot(g_tree, layout = igraph::layout_nicely , vertex.label = NA)## better
+plot(g_tree, layout = igraph::layout_components , vertex.label = NA)## best
+plot(g_tree, layout = igraph::layout_components , vertex.label.cex=0.3)
+
+#g_tree = graph_from_data_frame(TAX_tree, directed = F, vertices =  TAX_nodes)
+#V(g_tree)$size = (V(g_tree)$size)/ max(V(g_tree)$size) * 30
+#E(g_tree)$width = 1
 
 
 ```
+
+
 
 
