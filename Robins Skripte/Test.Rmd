@@ -1,0 +1,60 @@
+---
+title: "Wormland_Networks"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Open all files (Networks generated before)
+
+```{r}
+USA10n = read.csv("USA10n_Network.csv", header = T, stringsAsFactors = T)
+USA10y = read.csv("USA10y_Network.csv", header = T, stringsAsFactors = T)
+USA5n = read.csv("USA5n_Network.csv", header = T, stringsAsFactors = T)
+USA5y = read.csv("USA5y_Network.csv", header = T, stringsAsFactors = T)
+
+CAX10n = read.csv("CAX10n_Network.csv", header = T, stringsAsFactors = T)
+CAX10y = read.csv("CAX10y_Network.csv", header = T, stringsAsFactors = T)
+CAX5n = read.csv("CAX5n_Network.csv", header = T, stringsAsFactors = T)
+CAX5y = read.csv("CAX5y_Network.csv", header = T, stringsAsFactors = T)
+
+CAK10n = read.csv("CAK10n_Network.csv", header = T, stringsAsFactors = T)
+CAK10y = read.csv("CAK10y_Network.csv", header = T, stringsAsFactors = T)
+CAK5n = read.csv("CAK5n_Network.csv", header = T, stringsAsFactors = T)
+CAK5y = read.csv("CAK5y_Network.csv", header = T, stringsAsFactors = T)
+
+
+```
+
+```{r}
+NetworkList = list(USA10n[,1:3], USA10y[,1:3],
+                   USA5n[,1:3], USA5y[,1:3],
+                   CAX10n[,1:3], CAX10y[,1:3],
+                   CAX5n[,1:3], CAX5y[,1:3],
+                   CAK10n[,1:3], CAK10y[,1:3],
+                   CAK5n[,1:3], CAK5y[,1:3])
+
+library(CoDiNA)
+
+codina = CoDiNA::MakeDiffNet(Data = NetworkList, Code = c(
+                   "USA10n", "USA10y",
+                   "USA5n", "USA5y",
+                   "CAX10n", "CAX10y",
+                   "CAX5n", "CAX5y",
+                   "CAK10n", "CAK10y",
+                   "CAK5n", "CAK5y"))
+
+codinaSubset = subset(codina, codina$Score_ratio > 2)
+
+OTUPLACES = ClusterNodes(codinaSubset)
+table(OTUPLACES$Phi_tilde)
+dim(codinaSubset)
+require(magrittr)
+Compareg = plot(codinaSubset) %>% as.igraph() #%>% plot()
+table(codinaSubset$Phi_tilde)
+
+
+```
+

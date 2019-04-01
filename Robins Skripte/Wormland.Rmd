@@ -1,0 +1,276 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+#Ecoworm is the file with the OTUs and metadata
+Ecoworm = read.table("EcoW-data-EVOP.csv", header = T, stringsAsFactors = T, sep = ";")
+Ecoworm[,4]
+species = Ecoworm[,9:ncol(Ecoworm)]
+species
+forest = Ecoworm[,7]
+depth = Ecoworm[,6]
+worms = Ecoworm[,5]
+
+head(Ecoworm)
+
+#pc --> principle component analysis, trying to determine factors that explain the
+#variance in the data
+pc = prcomp(t(species), .scale = T, .center = T)
+summary(pc)
+plot(pc)
+plot(pc$x[,1:2])
+text(pc$x[,1:2], names(pc$x[,1]))
+
+boxplot(log(species[,1]+1) ~ forest + depth + worms)
+
+SubsetEcowormForestUSA = subset(species, "USA" == Ecoworm[,7])
+SubsetEcowormForestUSA = as.matrix(SubsetEcowormForestUSA)
+hist(as.numeric(SubsetEcowormForestUSA))
+
+SubsetEcowormForestCAK = subset(species, "CAK" == Ecoworm[,7])
+SubsetEcowormForestCAK = as.matrix(SubsetEcowormForestCAK)
+hist(as.numeric(SubsetEcowormForestCAK))
+
+SubsetEcowormForestCAX = subset(species, "CAX" == Ecoworm[,7])
+SubsetEcowormForestCAX = as.matrix(SubsetEcowormForestCAX)
+hist(as.numeric(SubsetEcowormForestCAX))
+
+SubsetEcowormForestUSA = subset(log(species+1), "USA" == Ecoworm[,7])
+SubsetEcowormForestUSA = as.matrix(SubsetEcowormForestUSA)
+hist(as.numeric(SubsetEcowormForestUSA[,1]), breaks = 15)
+
+library(rgl)
+
+pca = prcomp(t(species), scale. = T, center = T)
+plot(pca)
+plot(pca$rotation, col = c("red", "blue", "violet")[unclass(Ecoworm$Location)], pch = 19, las = 1)
+legend("bottomleft", levels(Ecoworm$Location), col = c("red", "blue", "violet"), pch = 16, bty = "n")
+
+plot(pca$rotation, col = c("red", "blue", "violet")[unclass(Ecoworm$Location)], pch = c(19,4)[unclass(Ecoworm$Worm)], las = 1)
+legend("bottomleft", c(levels(Ecoworm$Location), levels(Ecoworm$Worm)), col = c("red", "blue", "violet", "black", "black"), pch = c(16, 16, 16, 19, 4), bty = "n")
+
+plot(pca$rotation, col = c("red", "blue", "violet")[unclass(Ecoworm$Location)], pch = c(19,4)[unclass(as.factor(Ecoworm$Depth))], las = 1)
+legend("bottomleft", c(levels(Ecoworm$Location), levels(as.factor(Ecoworm$Depth))), col = c("red", "blue", "violet", "black", "black"), pch = c(16, 16, 16, 19, 4), bty = "n")
+
+plot(pca$rotation, col = c("red", "blue", "violet")[unclass(Ecoworm$Worm)], pch = c(19,4)[unclass(as.factor(Ecoworm$Depth))], las = 1)
+legend("bottomleft", c(levels(Ecoworm$Worm), levels(as.factor(Ecoworm$Depth))), col = c("red", "blue", "black", "black"), pch = c(16, 16, 19, 4), bty = "n")
+
+
+scatterplot3d::scatterplot3d(pca$rotation[,1], 
+                             pca$rotation[,3],
+                             pca$rotation[,2],
+                             xlab = 'PCA1', 
+                             ylab = 'PCA3', 
+                             zlab = 'PCA2', 
+                             las = 1, 
+                             color = c('red', 'blue')[unclass(Ecoworm$Location)], 
+                             pch = c(4, 16)[unclass(Ecoworm$Worm)] )
+
+rgl.open()
+x = pca$rotation[,1]
+y = pca$rotation[,2]
+z = pca$rotation[,3]
+rgl.points(x, y, z, color =c("red", "blue", "violet")[unclass(Ecoworm$Location)], size = 10)
+
+OTU555_modLocation = lm(log(species$Otu555.Glissomonadida.Allapsidae.Allapsidae_X.sp. + 1) ~ Ecoworm$Location)
+summary(OTU555_modLocation)
+AIC(OTU555_modLocation)
+OTU555_modDepth = lm(log(species$Otu555.Glissomonadida.Allapsidae.Allapsidae_X.sp. + 1) ~ Ecoworm$Depth)
+summary(OTU555_modDepth)
+AIC(OTU555_modDepth)
+OTU555_modWorm = lm(log(species$Otu555.Glissomonadida.Allapsidae.Allapsidae_X.sp. + 1) ~ Ecoworm$Worm)
+summary(OTU555_modWorm)
+AIC(OTU555_modWorm)
+OTU555_modAll = lm(log(species$Otu555.Glissomonadida.Allapsidae.Allapsidae_X.sp. + 1) ~ Ecoworm$Location + as.factor(Ecoworm$Depth) + Ecoworm$Worm)
+summary(OTU555_modAll)
+AIC(OTU555_modAll)
+par(mfrow = c(2,2))
+
+plot(OTU555_modAll, which = c(1:4), add.smooth = FALSE, pch=20, las = 1)
+
+transspecies = t(species)
+
+# TestDataFrame = data.frame()
+
+for (r in 1:nrow(transspecies)){
+  OTU = rownames(transspecies)[r]
+  OTU_modAll_summary = summary(lm(log(species[,r] + 1) ~ Ecoworm$Location + as.factor(Ecoworm$Depth) + Ecoworm$Worm))
+  coeff = OTU_modAll_summary$coefficients
+  Test = cbind(OTU, 
+               LocationCAX = coeff[2,1], LocationCAXp = coeff[2,4], 
+               LocationUSA = coeff[3,1], LocationUSAp = coeff[3,4], 
+               Depth = coeff[4,1], Depthp = coeff[4,4], 
+               Worm = coeff[5,1], Wormp = coeff[5,4], 
+               R_squared = OTU_modAll_summary$r.squared)
+  
+  if (r == 1){
+    TestDataFrame = Test
+  } else{
+TestDataFrame = rbind(TestDataFrame, Test)    
+  }
+
+}
+
+head(TestDataFrame)
+TestDataFrame = as.data.frame(TestDataFrame)
+names(TestDataFrame)[10] = "R_square"
+head(t(species))
+
+TestDataFrame$LocationCAX = as.numeric(as.matrix(TestDataFrame$LocationCAX))
+TestDataFrame$LocationUSA = as.numeric(as.matrix(TestDataFrame$LocationUSA))
+TestDataFrame$Depth = as.numeric(as.matrix(TestDataFrame$Depth))
+TestDataFrame$Worm = as.numeric(as.matrix(TestDataFrame$Worm))
+
+TestDataFrame$LocationCAXp = as.numeric(as.matrix(TestDataFrame$LocationCAXp))
+TestDataFrame$LocationUSAp = as.numeric(as.matrix(TestDataFrame$LocationUSAp))
+TestDataFrame$Depthp = as.numeric(as.matrix(TestDataFrame$Depthp))
+TestDataFrame$Wormp = as.numeric(as.matrix(TestDataFrame$Wormp))
+
+par(mfrow = c(2,2))
+plot(as.numeric(TestDataFrame$LocationCAX), -log(as.numeric(TestDataFrame$LocationCAXp)))
+plot(as.numeric(TestDataFrame$LocationUSA), -log(as.numeric(TestDataFrame$LocationUSAp)))
+plot(as.numeric(TestDataFrame$Depth), -log(as.numeric(TestDataFrame$Depthp)))
+plot(as.numeric(TestDataFrame$Worm), -log(as.numeric(TestDataFrame$Wormp)))
+
+CAXpAdjusted = p.adjust(TestDataFrame$LocationCAXp, method = "BH")
+USApAdjusted = p.adjust(TestDataFrame$LocationUSAp, method = "BH")
+DepthpAdjusted = p.adjust(TestDataFrame$Depthp, method = "BH")
+WormpAdjusted = p.adjust(TestDataFrame$Wormp, method = "BH")
+TestDataFrame$LocationCAX
+CAXpAdjusted
+TestDataFrame$OTU[DepthpAdjusted < 0.05 & USApAdjusted < 0.05 & CAXpAdjusted < 0.05 & WormpAdjusted < 0.05]
+plot(TestDataFrame$LocationCAX, -log(Peter))
+
+library(eulerr)
+
+log_species = log(species + 1)
+
+USA10y = log_species[Ecoworm$Location == "USA" & Ecoworm$Depth == 10 & Ecoworm$Worm == "yes",] 
+USA5y = log_species[Ecoworm$Location == "USA" & Ecoworm$Depth == 5 & Ecoworm$Worm == "yes",]
+USA10n = log_species[Ecoworm$Location == "USA" & Ecoworm$Depth == 10 & Ecoworm$Worm == "no",]
+USA5n = log_species[Ecoworm$Location == "USA" & Ecoworm$Depth == 5 & Ecoworm$Worm == "no",]
+CAK10y = log_species[Ecoworm$Location == "CAK" & Ecoworm$Depth == 10 & Ecoworm$Worm == "yes",]
+CAK5y = log_species[Ecoworm$Location == "CAK" & Ecoworm$Depth == 5 & Ecoworm$Worm == "yes",]
+CAK10n = log_species[Ecoworm$Location == "CAK" & Ecoworm$Depth == 10 & Ecoworm$Worm == "no",]
+CAK5n = log_species[Ecoworm$Location == "CAK" & Ecoworm$Depth == 5 & Ecoworm$Worm == "no",]
+CAX10y = log_species[Ecoworm$Location == "CAX" & Ecoworm$Depth == 10 & Ecoworm$Worm == "yes",]
+CAX5y = log_species[Ecoworm$Location == "CAX" & Ecoworm$Depth == 5 & Ecoworm$Worm == "yes",]
+CAX10n = log_species[Ecoworm$Location == "CAX" & Ecoworm$Depth == 10 & Ecoworm$Worm == "no",]
+CAX5n = log_species[Ecoworm$Location == "CAX" & Ecoworm$Depth == 5 & Ecoworm$Worm == "no",]
+
+head(USA10n)
+
+library(igraph)
+library(wTO)
+
+USA10y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(USA10y)), Overlap = row.names(t(USA10y)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+USA5y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(USA5y)), Overlap = row.names(t(USA5y)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+CAX10y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAX10y)), Overlap = row.names(t(CAX10y)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+CAX5y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAX5y)), Overlap = row.names(t(CAX5y)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+CAK10y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAK10y)), Overlap = row.names(t(CAK10y)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+CAK5y_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAK5y)), Overlap = row.names(t(CAK5y)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+
+USA10n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(USA10n)), Overlap = row.names(t(USA10n)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+USA5n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(USA5n)), Overlap = row.names(t(USA5n)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+CAX10n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAX10n)), Overlap = row.names(t(CAX10n)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+CAX5n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAX5n)), Overlap = row.names(t(CAX5n)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+CAK10n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAK10n)), Overlap = row.names(t(CAK10n)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+CAK5n_Network<-wTO.Complete(k = 1, n = 1000, as.data.frame(t(CAK5n)), Overlap = row.names(t(CAK5n)),
+  method = "p", method_resampling = "Bootstrap", pvalmethod = "BH",
+  savecor = F, expected.diff = 0.2, lag = NULL, ID = NULL,
+  normalize = F, plot = T)
+
+
+
+```
+
+```{r}
+library(vegan)
+head(colnames(Ecoworm))
+row.names(species) = paste0(Ecoworm$Location, Ecoworm$Depth, Ecoworm$Worm, Ecoworm$No.)
+BrayDist = vegdist(USA10n, method = "bray")
+library(heatmap3)
+plot(hclust(BrayDist))
+x11()
+heatmap3(as.matrix(species), distfun = function(x) vegdist(x), col = colorRampPalette(c('steelblue', "springgreen"))(10), returnDistMatrix = T, scale = "column")
+max(as.matrix(HM$DistMatrixR))
+BrayDist = as.matrix(BrayDist)
+dim(BrayDist)
+
+gbd = igraph::graph_from_adjacency_matrix(BrayDist, weighted = T, diag = F, mode = 'undirected')
+V(gbd)$size = strength(gbd)
+V(gbd)$size = CoDiNA::normalize(V(gbd)$size) * 5
+#V(gbd)$color = 
+E(gbd)$weight <- ifelse(E(gbd)$weight > 0.5, 0, E(gbd)$weight)
+E(gbd)$width = (1 - E(gbd)$weight)* 5
+dim(BrayDist)
+plot(gbd, layout = layout_with_drl(gbd))
+
+NetworkList = list(USA10n[,1:3], USA10y[,1:3],
+                   USA5n[,1:3], USA5y[,1:3], 
+                   CAX10n[,1:3], CAX10y[,1:3],
+                   CAX5n[,1:3], CAX5y[,1:3],
+                   CAK10n[,1:3], CAK10y[,1:3],
+                   CAK5n[,1:3], CAK5y[,1:3])
+
+codina<-CoDiNA::MakeDiffNet(Data = NetworkList, Code = c("USA10n", "USA10y",
+                   "USA5n", "USA5y", 
+                   "CAX10n", "CAX10y",
+                   "CAX5n", "CAX5y",
+                   "CAK10n", "CAK10y",
+                   "CAK5n", "CAK5y"))
+plot(codina)
+
+
+```
+

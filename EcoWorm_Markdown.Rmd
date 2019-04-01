@@ -641,3 +641,41 @@ points(mds.fig, "sites", pch = 19, col = "blue", select = Cerco.env$Treatment ==
 ```
 
 
+```{r}
+
+library (vegan)  
+
+Ecoworm<-read.csv("D:\\Backup\\Projekte/Github/Wormland/EcoW-data-EVOP.csv", header=T, stringsAsFactors=TRUE, sep=";")
+
+species <-Ecoworm[,9:ncol(Ecoworm)] ##definiere Artdaten; ncol(Ecoworm geht bis zur letzten Zeile durch)
+Forest <- Ecoworm[,7]
+Depth<- Ecoworm[,6]
+Worm<-Ecoworm[,5]
+
+
+# load OTUs
+
+cerco.OTU1 <-Ecoworm[,9:ncol(Ecoworm)]
+cerco.env<-Ecoworm[,c(5:7)]
+
+# calculate relative abundances
+Cerco.OTU.rel <- sweep(cerco.OTU1, 1, rowSums(cerco.OTU1), '/') 
+
+
+# Shannon, Simpson, inv Simpson diversity
+cerco.env$H <- diversity(Cerco.OTU.rel)
+cerco.env$simp <- diversity(Cerco.OTU.rel, "simpson")
+cerco.env$invsimp <- diversity(Cerco.OTU.rel, "inv")
+
+# Pielou's evenness J = H0= log(S)
+cerco.env$J <- cerco.env$H/log(specnumber(Cerco.OTU.rel))
+# alpha parameter of Fisher's log-series
+cerco.env$alpha <- fisher.alpha(cerco.OTU1)
+
+# richness for the same number of individuals
+cerco.env$Srar <- rarefy(cerco.OTU1, min(rowSums(cerco.OTU1)))
+
+pairs(~H+ simp+invsimp+ alpha+ Srar+J, pch="+", col="blue", data =cerco.env)
+###############plot looks really similar to other projects (like Smalla), only the values in the axes differ
+
+```
